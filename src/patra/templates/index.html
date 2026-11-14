@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patra - scheme eligibility assistant</title>
+<style>
+ :root { --navy:#1f3864; --blue:#2e5c8a; --line:#d6dce5; --ok:#2e6b4f; --no:#b04a3f; }
+ * { box-sizing: border-box; }
+ body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; margin:0; background:#f5f7fa; color:#1a1a1a; }
+ header { background:var(--navy); color:#fff; padding:18px 22px; }
+ header h1 { margin:0; font-size:20px; letter-spacing:.4px; }
+ header p { margin:6px 0 0; font-size:13px; opacity:.85; }
+ main { max-width:860px; margin:24px auto 60px; padding:0 18px; }
+ form { background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px; }
+ label { font-size:13px; font-weight:600; color:var(--blue); display:block; margin-bottom:6px; }
+ textarea { width:100%; min-height:78px; padding:10px; border:1px solid var(--line); border-radius:8px; font-size:15px; font-family:inherit; }
+ .row { display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+ button { background:var(--navy); color:#fff; border:0; padding:11px 20px; border-radius:8px; font-size:15px; cursor:pointer; }
+ select { padding:9px; border:1px solid var(--line); border-radius:8px; }
+ .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px; margin-top:18px; }
+ .verdict { font-size:18px; font-weight:600; }
+ .verdict.eligible { color:var(--ok); }
+ .verdict.not_eligible { color:var(--no); }
+ .verdict.indeterminate, .verdict.abstained { color:#7a5c1e; }
+ table { width:100%; border-collapse:collapse; margin-top:14px; font-size:14px; }
+ th, td { text-align:left; padding:8px; border-bottom:1px solid var(--line); vertical-align:top; }
+ th { color:var(--blue); font-size:12px; text-transform:uppercase; letter-spacing:.4px; }
+ .pass { color:var(--ok); font-weight:600; } .fail { color:var(--no); font-weight:600; } .unknown { color:#7a5c1e; font-weight:600; }
+ blockquote { margin:6px 0 0; padding:8px 12px; border-left:3px solid var(--blue); background:#f2f6fb; font-size:13px; color:#333; }
+ .note { font-size:12px; color:#666; margin-top:10px; }
+ .disclaimer { font-size:12px; color:#666; border-top:1px solid var(--line); margin-top:16px; padding-top:10px; }
+ ul.schemes { list-style:none; padding:0; margin:8px 0 0; font-size:13px; }
+ ul.schemes li { padding:4px 0; border-bottom:1px dotted var(--line); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Patra</h1>
+  <p>Ask about a welfare scheme. You get a verdict, the criteria that decided it, and the clause behind each one.</p>
+</header>
+<main>
+  <form method="post" action="/">
+    <label for="question">Your question</label>
+    <textarea id="question" name="question" placeholder="Example: I am a 45 year old farmer with annual income of 1.5 lakh. Am I eligible for PM-KISAN?">{{ question }}</textarea>
+    <div class="row">
+      <select name="lang">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+      <button type="submit">Check eligibility</button>
+      {% if latency_ms %}<span class="note">{{ latency_ms }} ms</span>{% endif %}
+    </div>
+  </form>
+
+  {% if result %}
+  <div class="card">
+    <div class="verdict {{ result.verdict_type }}">{{ result.answer }}</div>
+    {% if result.reason_text %}<p class="note">{{ result.reason_text }}</p>{% endif %}
+    {% if result.failed_fields %}<p class="note">Conditions not met: {{ result.failed_fields|join(', ') }}</p>{% endif %}
+    {% if result.unknown_fields %}<p class="note">Information needed: {{ result.unknown_fields|join(', ') }}</p>{% endif %}
+    <table>
+      <tr><th>Condition</th><th>You</th><th>Rule</th><th>Result</th></tr>
+      {% for c in result.criteria %}
+      <tr>
+        <td>{{ c.field }}</td>
+        <td>{{ c.observed if c.observed is not none else '—' }}</td>
+        <td>{{ c.operator }} {{ c.threshold if c.threshold is not none else '' }}</td>
+        <td class="{{ c.outcome }}">{{ c.outcome }}</td>
+      </tr>
+      <tr><td colspan="4"><blockquote>{{ c.clause_text }}</blockquote></td></tr>
+      {% endfor %}
+    </table>
+    {% if result.source_url %}<p class="note">Source: <a href="{{ result.source_url }}">{{ result.source_url }}</a></p>{% endif %}
+    {% if result.source_note %}<p class="note">{{ result.source_note }}</p>{% endif %}
+    <p class="disclaimer">{{ result.disclaimer }}</p>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <strong style="font-size:13px;color:var(--blue)">Schemes held</strong>
+    <ul class="schemes">
+      {% for s in schemes %}<li>{{ s.name }}</li>{% endfor %}
+    </ul>
+  </div>
+</main>
+</body>
+</html>
