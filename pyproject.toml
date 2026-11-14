@@ -11,12 +11,12 @@ requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Shreyash Yadav" }]
 dependencies = [
-  "fastapi>=0.115",
-  "uvicorn>=0.34",
-  "jinja2>=3.1",
+  "fastapi>=0.115.6",
+  "uvicorn>=0.34.0",
+  "jinja2>=3.1.5",
   "python-multipart>=0.0.20",
-  "scikit-learn>=1.6",
-  "numpy>=2.2",
+  "scikit-learn>=1.6.1",
+  "numpy>=2.2.1",
 ]
 
 [project.optional-dependencies]
@@ -33,6 +33,18 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 patra = ["templates/*.html"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]          # line length is handled by the formatter
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]       # assert False is fine in a test helper
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
