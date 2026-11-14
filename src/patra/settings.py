@@ -1,11 +1,12 @@
 """Runtime settings. Everything here is overridable by environment variable."""
+
 import os
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent          # src/patra
-REPO_ROOT = BASE_DIR.parents[1]                      # repository root
+BASE_DIR = Path(__file__).resolve().parent  # src/patra
+REPO_ROOT = BASE_DIR.parents[1]  # repository root
 DATA_DIR = Path(os.environ.get("PATRA_DATA", REPO_ROOT / "data"))
-if not DATA_DIR.exists():                            # packaged fallback
+if not DATA_DIR.exists():  # packaged fallback
     DATA_DIR = BASE_DIR / "data"
 CORPUS_DIR = DATA_DIR / "corpus"
 CRITERIA_DIR = DATA_DIR / "criteria"
@@ -19,11 +20,11 @@ CANDIDATES = 50
 RERANK_TOP = 10
 
 # Gate
-GATE_TARGET_ACCURACY = 0.80   # accuracy target used to pick the abstention threshold
-GATE_MIN_COVERAGE = 0.80      # answer at least 80% of questions
+GATE_TARGET_ACCURACY = 0.80  # accuracy target used to pick the abstention threshold
+GATE_MIN_COVERAGE = 0.80  # answer at least 80% of questions
 
 # Abstention when no scheme is named in the question
-UNLINKED_MIN_RERANK = 0.60   # below this, an unlinked question is out of scope
+UNLINKED_MIN_RERANK = 0.60  # below this, an unlinked question is out of scope
 
 # Answer composition
 DISCLAIMER = (

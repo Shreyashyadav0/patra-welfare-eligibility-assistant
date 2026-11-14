@@ -4,9 +4,10 @@ The composer renders facts the engine computed. It may not introduce a number: e
 number in the answer comes from the verdict object, and every criterion carries the
 clause it came from.
 """
+
 from __future__ import annotations
 
-from .engine import ELIGIBLE, INDETERMINATE, NOT_ELIGIBLE, Verdict
+from .engine import Verdict
 from .settings import DISCLAIMER
 
 TEMPLATES = {
@@ -32,9 +33,16 @@ REASONS = {
 }
 
 
-def compose(scheme_name: str, verdict: Verdict, decision: str, reason: str | None,
-            lang: str = "en", probability: float | None = None,
-            source_url: str = "", source_note: str = "") -> dict:
+def compose(
+    scheme_name: str,
+    verdict: Verdict,
+    decision: str,
+    reason: str | None,
+    lang: str = "en",
+    probability: float | None = None,
+    source_url: str = "",
+    source_note: str = "",
+) -> dict:
     templates = TEMPLATES_HI if lang == "hi" else TEMPLATES
     if decision == "answer":
         head = templates[verdict.verdict_type].format(scheme=scheme_name)

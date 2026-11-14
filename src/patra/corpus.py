@@ -5,6 +5,7 @@ ingest time. If a clause cannot be located, ingestion fails loudly rather than
 silently producing a criterion with no evidence - that failure mode is the one the
 project exists to prevent.
 """
+
 from __future__ import annotations
 
 import hashlib
