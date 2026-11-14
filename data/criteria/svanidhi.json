@@ -1,0 +1,28 @@
+{
+  "scheme_id": "svanidhi",
+  "name": "PM SVANidhi: working capital loan for street vendors",
+  "ministry": "Ministry of Housing and Urban Affairs",
+  "level": "central",
+  "state": null,
+  "official_url": "https://pmsvanidhi.mohua.gov.in/",
+  "source_note": "ILLUSTRATIVE SEED DATA. Criteria are simplified for the prototype and are not a substitute for the official scheme guidelines; replace before any real use.",
+  "doc_id": "svanidhi-2026",
+  "criteria": [
+    {
+      "field": "is_street_vendor",
+      "criterion_type": "occupation",
+      "operator": "IS_TRUE",
+      "threshold": null,
+      "mandatory": true,
+      "clause_text": "The applicant must be a street vendor in an urban local body."
+    },
+    {
+      "field": "income_annual",
+      "criterion_type": "income",
+      "operator": "<=",
+      "threshold": 200000,
+      "mandatory": true,
+      "clause_text": "Annual income must not exceed Rs 2,00,000."
+    }
+  ]
+}

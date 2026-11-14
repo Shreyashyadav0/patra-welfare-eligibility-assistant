@@ -1,0 +1,36 @@
+{
+  "scheme_id": "pmayg",
+  "name": "PMAY-Gramin: assistance for rural housing",
+  "ministry": "Ministry of Rural Development",
+  "level": "central",
+  "state": null,
+  "official_url": "https://pmayg.nic.in/",
+  "source_note": "ILLUSTRATIVE SEED DATA. Criteria are simplified for the prototype and are not a substitute for the official scheme guidelines; replace before any real use.",
+  "doc_id": "pmayg-2026",
+  "criteria": [
+    {
+      "field": "residence",
+      "criterion_type": "residence",
+      "operator": "==",
+      "threshold": "rural",
+      "mandatory": true,
+      "clause_text": "The beneficiary must reside in a rural area."
+    },
+    {
+      "field": "income_annual",
+      "criterion_type": "income",
+      "operator": "<=",
+      "threshold": 300000,
+      "mandatory": true,
+      "clause_text": "Annual household income must not exceed Rs 3,00,000."
+    },
+    {
+      "field": "has_pucca_house",
+      "criterion_type": "other",
+      "operator": "IS_FALSE",
+      "threshold": null,
+      "mandatory": true,
+      "clause_text": "The household must not already own a pucca house."
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "scheme_id": "pmuy",
+  "name": "Pradhan Mantri Ujjwala Yojana: LPG connection for eligible households",
+  "ministry": "Ministry of Petroleum and Natural Gas",
+  "level": "central",
+  "state": null,
+  "official_url": "https://www.pmuy.gov.in/",
+  "source_note": "ILLUSTRATIVE SEED DATA. Criteria are simplified for the prototype and are not a substitute for the official scheme guidelines; replace before any real use.",
+  "doc_id": "pmuy-2026",
+  "criteria": [
+    {
+      "field": "gender",
+      "criterion_type": "other",
+      "operator": "==",
+      "threshold": "F",
+      "mandatory": true,
+      "clause_text": "The connection is issued in the name of an adult woman of the household."
+    },
+    {
+      "field": "age",
+      "criterion_type": "age",
+      "operator": ">=",
+      "threshold": 18,
+      "mandatory": true,
+      "clause_text": "The applicant must be at least 18 years of age."
+    },
+    {
+      "field": "category",
+      "criterion_type": "category",
+      "operator": "IN",
+      "threshold": [
+        "BPL",
+        "SC",
+        "ST"
+      ],
+      "mandatory": true,
+      "clause_text": "The household must hold a BPL or equivalent category card."
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "scheme_id": "pmjay",
+  "name": "Ayushman Bharat PM-JAY: health cover for low-income households",
+  "ministry": "Ministry of Health and Family Welfare",
+  "level": "central",
+  "state": null,
+  "official_url": "https://pmjay.gov.in/",
+  "source_note": "ILLUSTRATIVE SEED DATA. Criteria are simplified for the prototype and are not a substitute for the official scheme guidelines; replace before any real use.",
+  "doc_id": "pmjay-2026",
+  "criteria": [
+    {
+      "field": "income_annual",
+      "criterion_type": "income",
+      "operator": "<=",
+      "threshold": 120000,
+      "mandatory": true,
+      "clause_text": "Eligibility is limited to households with annual income not exceeding Rs 1,20,000."
+    },
+    {
+      "field": "covered_esic",
+      "criterion_type": "other",
+      "operator": "IS_FALSE",
+      "threshold": null,
+      "mandatory": true,
+      "clause_text": "Households covered by ESIC or CGHS are excluded."
+    },
+    {
+      "field": "age",
+      "criterion_type": "age",
+      "operator": ">=",
+      "threshold": 18,
+      "mandatory": true,
+      "clause_text": "The applicant must be at least 18 years of age."
+    }
+  ]
+}

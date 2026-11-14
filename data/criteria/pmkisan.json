@@ -1,0 +1,44 @@
+{
+  "scheme_id": "pmkisan",
+  "name": "PM-KISAN: income support to landholding farmer families",
+  "ministry": "Ministry of Agriculture and Farmers Welfare",
+  "level": "central",
+  "state": null,
+  "official_url": "https://www.pmkisan.gov.in/",
+  "source_note": "ILLUSTRATIVE SEED DATA. Criteria are simplified for the prototype and are not a substitute for the official scheme guidelines; replace before any real use.",
+  "doc_id": "pmkisan-2026",
+  "criteria": [
+    {
+      "field": "occupation",
+      "criterion_type": "occupation",
+      "operator": "==",
+      "threshold": "farmer",
+      "mandatory": true,
+      "clause_text": "The applicant must be a landholding farmer family."
+    },
+    {
+      "field": "age",
+      "criterion_type": "age",
+      "operator": ">=",
+      "threshold": 18,
+      "mandatory": true,
+      "clause_text": "The applicant must be at least 18 years of age."
+    },
+    {
+      "field": "income_tax_payer",
+      "criterion_type": "document",
+      "operator": "IS_FALSE",
+      "threshold": null,
+      "mandatory": true,
+      "clause_text": "Households that pay income tax are not eligible."
+    },
+    {
+      "field": "govt_employee",
+      "criterion_type": "occupation",
+      "operator": "IS_FALSE",
+      "threshold": null,
+      "mandatory": true,
+      "clause_text": "Serving or retired government employees are excluded."
+    }
+  ]
+}
