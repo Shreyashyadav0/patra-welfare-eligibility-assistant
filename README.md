@@ -7,6 +7,9 @@ criteria that decided it and quotes the clause behind each one.
 The verdict is computed by a deterministic rule engine over a curated criteria table.
 A language model may read the question; it never states a threshold and never decides.
 
+[![CI](https://github.com/Shreyashyadav0/patra-welfare-eligibility-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/Shreyashyadav0/patra-welfare-eligibility-assistant/actions/workflows/ci.yml)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 > **Category:** Artificial Intelligence / Machine Learning / Data Science.
 
@@ -56,6 +59,18 @@ Runs fully offline: no API key, no model download, no database server.
 
 ---
 
+## Engineering standards
+
+- **Tests:** 47, run by CI on Python 3.12 and 3.13 for every push and pull request.
+- **Lint and format:** `ruff`, enforced in CI and available as a `pre-commit` hook.
+- **Logging:** one line per HTTP request, one per decision, level set by `PATRA_LOG_LEVEL`.
+- **Packaging:** `src/` layout, `pyproject.toml`, editable install, `patra` console command.
+- **Container:** multi-stage-free slim image with a `HEALTHCHECK` against `/health`.
+- **Conventions:** Conventional Commits, one concern per commit; see `CONTRIBUTING.md`.
+- **Security posture:** see `SECURITY.md`; no personal data is stored.
+
+---
+
 ## What is in this repository
 
 ```
@@ -81,6 +96,7 @@ Runs fully offline: no API key, no model download, no database server.
 │   ├── api.py                 ← FastAPI routes
 │   ├── cli.py                 ← demo / eval / serve
 │   ├── settings.py            ← every tunable, one file
+│   ├── logging_conf.py        ← one place to set the log level
 │   └── templates/index.html   ← the web page
 │
 ├── data/                      ← everything the system reads
@@ -104,6 +120,16 @@ Runs fully offline: no API key, no model download, no database server.
 ├── scripts/
 │   ├── demo.sh                ← the three answer states, end to end
 │   └── evaluate.sh            ← regenerate the artefacts in artifacts/
+│
+├── .github/
+│   ├── workflows/ci.yml       ← tests, lint and a benchmark smoke test on every push
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── ISSUE_TEMPLATE/bug_report.md
+│
+├── CHANGELOG.md               ← what changed, per version
+├── CONTRIBUTING.md            ← how to work on this, where each concern lives
+├── SECURITY.md                ← threat model, what bounds risk, known limits
+└── .pre-commit-config.yaml    ← lint and format before a commit, not after
 │
 └── artifacts/                 ← output of the last evaluation run
     ├── eval_report.json       ← per-item results and metrics

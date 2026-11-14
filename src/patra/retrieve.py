@@ -4,6 +4,7 @@ The reranker here is a transparent lexical scorer, not a cross-encoder. It is
 labelled as such because the synopsis claims a reranker ablation: the ablation is
 only honest if the reader knows what is being ablated.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -54,7 +55,15 @@ class HybridRetriever:
         for e in evidence:
             toks = set(tokenize(e.chunk.text))
             overlap = len(q & toks) / (len(q) or 1)
-            condition_words = {"eligib", "must", "shall", "income", "age", "annual", "years"}
+            condition_words = {
+                "eligib",
+                "must",
+                "shall",
+                "income",
+                "age",
+                "annual",
+                "years",
+            }
             boost = 0.15 if any(w in e.chunk.text.lower() for w in condition_words) else 0.0
             e.score_rerank = round(overlap + boost + 0.1 * e.score_fused, 6)
         return sorted(evidence, key=lambda e: -e.score_rerank)

@@ -7,6 +7,7 @@ Criteria are read from the curated table, which is what the deterministic engine
 evaluates. The extraction pipeline that *produces* that table is `propose_criteria`,
 and it is measured against the curated table by the A6 protocol in evaluate.py.
 """
+
 from __future__ import annotations
 
 import re
@@ -14,14 +15,33 @@ from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 NUMBER_WORDS = {
-    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
-    "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
 }
 
 FIELDS = [
-    "age", "gender", "state", "income_annual", "category", "occupation",
-    "residence", "is_student", "income_tax_payer", "govt_employee",
-    "has_pucca_house", "marks", "covered_esic", "is_street_vendor",
+    "age",
+    "gender",
+    "state",
+    "income_annual",
+    "category",
+    "occupation",
+    "residence",
+    "is_student",
+    "income_tax_payer",
+    "govt_employee",
+    "has_pucca_house",
+    "marks",
+    "covered_esic",
+    "is_street_vendor",
 ]
 
 
@@ -58,13 +78,16 @@ class ProfileExtractor(Protocol):
 class RuleProfileExtractor:
     """Regex and lexicon extractor. Deterministic and unit-testable."""
 
-    AGE_RE = re.compile(r"\b(?:age[d]?\s*(?:is|of)?\s*)?(\d{1,2})\s*(?:years?|yrs?|y/o)\b", re.I)
-    AGE_ALT = re.compile(r"\bage[d]?\s*[:=]?\s*(\d{1,2})\b", re.I)
+    AGE_RE = re.compile(
+        r"\b(?:age[d]?\s*(?:is|of)?\s*)?(\d{1,2})\s*(?:years?|yrs?|y/o)\b",
+        re.IGNORECASE,
+    )
+    AGE_ALT = re.compile(r"\bage[d]?\s*[:=]?\s*(\d{1,2})\b", re.IGNORECASE)
     INCOME_RE = re.compile(
         r"(?:income|earn|salary|earning)[^0-9₹]{0,25}(?:rs\.?|₹|inr)?\s*([0-9][0-9,\.]*\s*(?:k|lakh|lac|crore|cr)?)",
-        re.I,
+        re.IGNORECASE,
     )
-    MARKS_RE = re.compile(r"(\d{1,3}(?:\.\d+)?)\s*(?:%|percent|marks)", re.I)
+    MARKS_RE = re.compile(r"(\d{1,3}(?:\.\d+)?)\s*(?:%|percent|marks)", re.IGNORECASE)
 
     def extract(self, question: str) -> Extraction:
         q = question.lower()
@@ -118,7 +141,10 @@ class RuleProfileExtractor:
 
         # Government employment is independent of occupation: a farmer can also be a
         # retired government servant, and the exclusion applies either way.
-        if re.search(r"\b(not|no|never)\s+(a\s+)?(government|govt|sarkari)\s+(employee|servant)", q):
+        if re.search(
+            r"\b(not|no|never)\s+(a\s+)?(government|govt|sarkari)\s+(employee|servant)",
+            q,
+        ):
             out.profile["govt_employee"] = "no"
             out.confidence["govt_employee"] = 0.85
         elif re.search(r"\b(government (servant|employee)|govt employee|sarkari naukri)\b", q):
@@ -126,8 +152,12 @@ class RuleProfileExtractor:
             out.confidence["govt_employee"] = 0.85
 
         if re.search(r"\b(income ?tax|it ?return|taxpayer)\b", q):
-            negated = bool(re.search(
-                r"\b(do not|don't|did not|never|no|not)\b[^.]{0,25}\b(pay|paid|paying|file|filed|a taxpayer)\b", q))
+            negated = bool(
+                re.search(
+                    r"\b(do not|don't|did not|never|no|not)\b[^.]{0,25}\b(pay|paid|paying|file|filed|a taxpayer)\b",
+                    q,
+                )
+            )
             if negated or "not a taxpayer" in q:
                 out.profile["income_tax_payer"] = "no"
                 out.confidence["income_tax_payer"] = 0.85
@@ -136,7 +166,9 @@ class RuleProfileExtractor:
                 out.confidence["income_tax_payer"] = 0.8
 
         if re.search(r"\bpucca\b", q):
-            out.profile["has_pucca_house"] = "no" if re.search(r"\b(no|not|without|don't|do not)\b", q) else "yes"
+            out.profile["has_pucca_house"] = (
+                "no" if re.search(r"\b(no|not|without|don't|do not)\b", q) else "yes"
+            )
             out.confidence["has_pucca_house"] = 0.6
 
         if re.search(r"\b(esic|cghs|government health cover)\b", q):
@@ -148,8 +180,18 @@ class RuleProfileExtractor:
             out.profile["marks"] = float(m.group(1))
             out.confidence["marks"] = 0.8
 
-        for state in ("bihar", "kerala", "maharashtra", "uttar pradesh", "tamil nadu",
-                      "karnataka", "rajasthan", "gujarat", "odisha", "punjab"):
+        for state in (
+            "bihar",
+            "kerala",
+            "maharashtra",
+            "uttar pradesh",
+            "tamil nadu",
+            "karnataka",
+            "rajasthan",
+            "gujarat",
+            "odisha",
+            "punjab",
+        ):
             if state in q:
                 out.profile["state"] = state.title()
                 out.confidence["state"] = 0.8
@@ -187,13 +229,31 @@ def propose_criteria(chunk_text: str) -> list[dict]:
     if m:
         value = _to_int(m.group(1) + (m.group(2) or ""))
         if value:
-            proposals.append({"field": "income_annual", "operator": "<=", "threshold": value,
-                              "criterion_type": "income"})
+            proposals.append(
+                {
+                    "field": "income_annual",
+                    "operator": "<=",
+                    "threshold": value,
+                    "criterion_type": "income",
+                }
+            )
     m = re.search(r"(?:aged?|age)[^0-9]{0,10}(\d{2})", text)
     if m:
-        proposals.append({"field": "age", "operator": ">=", "threshold": int(m.group(1)),
-                          "criterion_type": "age"})
+        proposals.append(
+            {
+                "field": "age",
+                "operator": ">=",
+                "threshold": int(m.group(1)),
+                "criterion_type": "age",
+            }
+        )
     if "woman" in text or "female" in text:
-        proposals.append({"field": "gender", "operator": "==", "threshold": "F",
-                          "criterion_type": "other"})
+        proposals.append(
+            {
+                "field": "gender",
+                "operator": "==",
+                "threshold": "F",
+                "criterion_type": "other",
+            }
+        )
     return proposals

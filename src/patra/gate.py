@@ -9,6 +9,7 @@ ask-for-field counted as non-coverage. Risk is 1 - accuracy over answered items.
 The gate never sees gold spans or answerability labels; it sees retrieval scores,
 extraction confidence and how much of the criteria set resolved.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -17,14 +18,20 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 
 FEATURES = [
-    "linked", "top1_bm25", "top1_vector", "score_margin", "top1_rerank",
-    "resolved_share", "profile_coverage", "injected_share",
+    "linked",
+    "top1_bm25",
+    "top1_vector",
+    "score_margin",
+    "top1_rerank",
+    "resolved_share",
+    "profile_coverage",
+    "injected_share",
 ]
 
 
 @dataclass
 class GateDecision:
-    action: str          # "answer" | "ask" | "abstain"
+    action: str  # "answer" | "ask" | "abstain"
     probability: float
     threshold: float
     reason_code: str | None = None
@@ -44,7 +51,7 @@ class AbstentionGate:
             return [float(v) for v in features]
         return [float(features.get(name, 0.0)) for name in FEATURES]
 
-    def fit(self, rows: list[dict], labels: list[int]) -> "AbstentionGate":
+    def fit(self, rows: list[dict], labels: list[int]) -> AbstentionGate:
         X = np.array([self.featurise(r) for r in rows], dtype=float)
         y = np.array(labels, dtype=int)
         if len(set(y.tolist())) < 2:
