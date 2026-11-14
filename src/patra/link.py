@@ -8,17 +8,48 @@ index is a lexical one.
 
 The alias table is data, not code: extend it as schemes are added.
 """
+
 from __future__ import annotations
 
-import re
-
 ALIASES: dict[str, list[str]] = {
-    "pmkisan": ["pm-kisan", "pm kisan", "pmkisan", "kisan samman", "kisan",
-                "पीएम-किसान", "पीएम किसान", "किसान सम्मान"],
-    "pmjay": ["pm-jay", "pmjay", "ayushman", "ayushman bharat", "जय", "आयुष्मान", "आयुष्मान भारत"],
-    "pmayg": ["pmay-g", "pmayg", "pmay", "gramin", "awas yojana", "आवास", "पीएमएवाई", "ग्रामीण आवास"],
+    "pmkisan": [
+        "pm-kisan",
+        "pm kisan",
+        "pmkisan",
+        "kisan samman",
+        "kisan",
+        "पीएम-किसान",
+        "पीएम किसान",
+        "किसान सम्मान",
+    ],
+    "pmjay": [
+        "pm-jay",
+        "pmjay",
+        "ayushman",
+        "ayushman bharat",
+        "जय",
+        "आयुष्मान",
+        "आयुष्मान भारत",
+    ],
+    "pmayg": [
+        "pmay-g",
+        "pmayg",
+        "pmay",
+        "gramin",
+        "awas yojana",
+        "आवास",
+        "पीएमएवाई",
+        "ग्रामीण आवास",
+    ],
     "pmuy": ["ujjwala", "pmuy", "lpg connection", "उज्ज्वला", "एलपीजी"],
-    "nsp": ["nsp", "national scholarship", "scholarship", "छात्रवृत्ति", "एनएसपी", "स्कॉलरशिप"],
+    "nsp": [
+        "nsp",
+        "national scholarship",
+        "scholarship",
+        "छात्रवृत्ति",
+        "एनएसपी",
+        "स्कॉलरशिप",
+    ],
     "svanidhi": ["svanidhi", "pm svanidhi", "street vendor loan", "स्वनिधि", "फेरीवाला"],
 }
 

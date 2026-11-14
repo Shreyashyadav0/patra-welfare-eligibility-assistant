@@ -3,6 +3,7 @@
 This is the component the project claims. It is the only place in the system where
 a value is compared with a threshold, and it never sees a language model.
 """
+
 from __future__ import annotations
 
 import math
@@ -88,9 +89,17 @@ def _compare(observed: Any, operator: str, threshold: Any) -> bool:
             raise EngineError(f"cannot read boolean from {observed!r}")
         return b if op == "IS_TRUE" else not b
     if op in {"==", "=", "EQ"}:
-        return str(observed).lower() == str(threshold).lower() if isinstance(threshold, str) else observed == threshold
+        return (
+            str(observed).lower() == str(threshold).lower()
+            if isinstance(threshold, str)
+            else observed == threshold
+        )
     if op in {"!=", "NE"}:
-        return str(observed).lower() != str(threshold).lower() if isinstance(threshold, str) else observed != threshold
+        return (
+            str(observed).lower() != str(threshold).lower()
+            if isinstance(threshold, str)
+            else observed != threshold
+        )
     if op in {"<", "<=", ">", ">="}:
         try:
             a = float(observed)
@@ -132,7 +141,7 @@ def _interval(criterion: Criterion) -> tuple[float, float] | None:
     if op == ">=":
         return (t, float("inf"))
     if op == ">":
-        return (math.nextafter(t, math.inf), float("inf"))   # strict: excludes t
+        return (math.nextafter(t, math.inf), float("inf"))  # strict: excludes t
     if op == "<=":
         return (float("-inf"), t)
     if op == "<":
@@ -148,7 +157,7 @@ def _has_conflict(criteria: list[Criterion]) -> bool:
     for c in criteria:
         by_field.setdefault(c.field, []).append(c)
 
-    for field, group in by_field.items():
+    for group in by_field.values():
         # Categorical conflict: two different equality/IN targets that cannot both hold.
         sets = []
         for c in group:
@@ -198,13 +207,18 @@ def evaluate(profile: dict[str, Any], criteria: list[Criterion]) -> Verdict:
                 outcome = UNKNOWN
         results.append(
             PredicateResult(
-                criterion_id=c.criterion_id, field=c.field, operator=c.operator,
-                threshold=c.threshold, observed=observed, outcome=outcome,
-                clause_text=c.clause_text, span=(c.span_start, c.span_end),
+                criterion_id=c.criterion_id,
+                field=c.field,
+                operator=c.operator,
+                threshold=c.threshold,
+                observed=observed,
+                outcome=outcome,
+                clause_text=c.clause_text,
+                span=(c.span_start, c.span_end),
             )
         )
 
-    mandatory = [r for r, c in zip(results, criteria) if c.mandatory]
+    mandatory = [r for r, c in zip(results, criteria, strict=False) if c.mandatory]
     if any(r.outcome == FAIL for r in mandatory):
         return Verdict(NOT_ELIGIBLE, results)
     if any(r.outcome == UNKNOWN for r in mandatory):

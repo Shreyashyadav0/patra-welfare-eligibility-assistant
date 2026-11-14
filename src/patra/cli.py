@@ -1,4 +1,5 @@
 """Command line: demo a question, run the benchmark, or serve the API."""
+
 from __future__ import annotations
 
 import argparse
@@ -7,6 +8,7 @@ from pathlib import Path
 
 from .corpus import load_corpus
 from .evaluate import format_table, freetext_mode, load_bench, run
+from .logging_conf import configure_logging
 from .pipeline import Pipeline
 from .settings import BENCH_FILE, CORPUS_DIR, CRITERIA_DIR
 
@@ -21,11 +23,15 @@ def cmd_demo(args) -> None:
     out = answer.rendered
     print(f"\nQ: {args.question}\n")
     print(f"A: {out['answer']}")
-    print(f"   decision={out['decision']}  verdict={out['verdict_type']}  "
-          f"reason={out['reason_code']}  p={out['probability']}")
+    print(
+        f"   decision={out['decision']}  verdict={out['verdict_type']}  "
+        f"reason={out['reason_code']}  p={out['probability']}"
+    )
     for c in out["criteria"]:
-        print(f"   - {c['field']:16s} {str(c['observed']):12s} {c['operator']:3s} "
-              f"{str(c['threshold']):10s} -> {c['outcome']}")
+        print(
+            f"   - {c['field']:16s} {c['observed']!s:12s} {c['operator']:3s} "
+            f"{c['threshold']!s:10s} -> {c['outcome']}"
+        )
     print(f"\n   citations: {len(out['citations'])}  latency: {answer.latency_ms:.1f} ms\n")
 
 
@@ -35,13 +41,19 @@ def cmd_eval(args) -> None:
     result = run(pipeline, items)
     print(format_table(result))
     ft = freetext_mode(pipeline, items)
-    print(f"\nfree-text mode (profile parsed from the question): "
-          f"{ft['verdict_accuracy_freetext']:.2f} accuracy over {ft['n']} items, "
-          f"{ft['asked_for_missing_field']} asked for a missing field")
-    print(f"retrieval-only recall@5 (before clause injection): "
-          f"{result['metrics']['retrieval_only_recall_at_5']:.2f}")
-    print(f"CLVC: kappa {result['metrics']['clvc_kappa']} over {result['metrics']['clvc_pairs']} pairs, "
-          f"raw agreement {result['metrics']['clvc_raw_agreement']}")
+    print(
+        f"\nfree-text mode (profile parsed from the question): "
+        f"{ft['verdict_accuracy_freetext']:.2f} accuracy over {ft['n']} items, "
+        f"{ft['asked_for_missing_field']} asked for a missing field"
+    )
+    print(
+        f"retrieval-only recall@5 (before clause injection): "
+        f"{result['metrics']['retrieval_only_recall_at_5']:.2f}"
+    )
+    print(
+        f"CLVC: kappa {result['metrics']['clvc_kappa']} over {result['metrics']['clvc_pairs']} pairs, "
+        f"raw agreement {result['metrics']['clvc_raw_agreement']}"
+    )
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(json.dumps(result, indent=2), encoding="utf-8")
@@ -50,10 +62,12 @@ def cmd_eval(args) -> None:
 
 def cmd_serve(args) -> None:
     import uvicorn
+
     uvicorn.run("patra.api:app", host=args.host, port=args.port, reload=False)
 
 
 def main() -> None:
+    configure_logging()
     parser = argparse.ArgumentParser(prog="patra", description="Patra eligibility assistant")
     sub = parser.add_subparsers(dest="command", required=True)
 

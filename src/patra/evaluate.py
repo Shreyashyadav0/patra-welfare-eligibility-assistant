@@ -7,18 +7,19 @@ Design notes that matter for honesty:
   reported separately, so the cost of parsing a question is visible rather than hidden.
 * Targets from the synopsis are printed next to the measured value. A miss is a miss.
 """
+
 from __future__ import annotations
 
+import itertools
 import json
 import math
 from collections import defaultdict
 from pathlib import Path
-from typing import Iterable
 
 import numpy as np
 from sklearn.model_selection import GroupKFold
 
-from .engine import ABSTAINED, ELIGIBLE, INDETERMINATE, NOT_ELIGIBLE
+from .engine import ABSTAINED
 from .gate import AbstentionGate
 from .pipeline import Pipeline
 
@@ -35,16 +36,16 @@ TARGETS = {
 
 
 def load_bench(path: Path) -> list[dict]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    ]
 
 
 def _gold_chunk_hit(evidence, gold_clause: str) -> bool:
     if not gold_clause:
         return False
-    for e in evidence[:5]:
-        if gold_clause.strip() in e.chunk.text:
-            return True
-    return False
+    needle = gold_clause.strip()
+    return any(needle in e.chunk.text for e in evidence[:5])
 
 
 def _ece(probs: list[float], labels: list[int], bins: int = 5) -> float:
@@ -52,7 +53,7 @@ def _ece(probs: list[float], labels: list[int], bins: int = 5) -> float:
         return 0.0
     edges = np.linspace(0.0, 1.0, bins + 1)
     total = 0.0
-    for lo, hi in zip(edges[:-1], edges[1:]):
+    for lo, hi in itertools.pairwise(edges):
         idx = [i for i, p in enumerate(probs) if lo <= p < hi or (hi == 1.0 and p == 1.0)]
         if not idx:
             continue
@@ -89,7 +90,7 @@ def _kappa(a: list[str], b: list[str]) -> float:
         return float("nan")
     labels = sorted(set(a) | set(b))
     n = len(a)
-    obs = sum(1 for x, y in zip(a, b) if x == y) / n
+    obs = sum(1 for x, y in zip(a, b, strict=False) if x == y) / n
     exp = 0.0
     for label in labels:
         pa = sum(1 for x in a if x == label) / n
@@ -105,17 +106,27 @@ def run(pipeline: Pipeline, items: list[dict], n_folds: int = 5) -> dict:
         ans = pipeline.answer(item["question"], profile=gold_profile, lang=item.get("lang", "en"))
         gold = item["gold_verdict"]
         correct = int(ans.verdict.verdict_type == gold)
-        records.append({
-            "item_id": item["item_id"], "stratum": item["stratum"], "lang": item.get("lang", "en"),
-            "answerable": item["answerable"], "gold": gold,
-            "predicted": ans.verdict.verdict_type, "decision": ans.decision,
-            "correct": correct, "features": ans.features,
-            "recall_hit": _gold_chunk_hit(ans.evidence, item.get("gold_clause", "")),
-            "recall_hit_retrieval_only": _gold_chunk_hit(
-                pipeline.retriever.retrieve(item["question"], top=5), item.get("gold_clause", "")),
-            "group": item["gold_scheme"], "latency_ms": ans.latency_ms,
-            "reason_code": ans.reason_code,
-        })
+        records.append(
+            {
+                "item_id": item["item_id"],
+                "stratum": item["stratum"],
+                "lang": item.get("lang", "en"),
+                "answerable": item["answerable"],
+                "gold": gold,
+                "predicted": ans.verdict.verdict_type,
+                "decision": ans.decision,
+                "correct": correct,
+                "features": ans.features,
+                "recall_hit": _gold_chunk_hit(ans.evidence, item.get("gold_clause", "")),
+                "recall_hit_retrieval_only": _gold_chunk_hit(
+                    pipeline.retriever.retrieve(item["question"], top=5),
+                    item.get("gold_clause", ""),
+                ),
+                "group": item["gold_scheme"],
+                "latency_ms": ans.latency_ms,
+                "reason_code": ans.reason_code,
+            }
+        )
 
     # ---- cross-fitted gate (scheme-disjoint folds) -------------------
     X = [AbstentionGate.featurise(r["features"]) for r in records]
@@ -139,11 +150,9 @@ def run(pipeline: Pipeline, items: list[dict], n_folds: int = 5) -> dict:
     if len(set(y)) > 1:
         gate.fit(X, y)
 
-    for rec, p in zip(records, oof):
+    for rec, p in zip(records, oof, strict=False):
         rec["probability"] = float(p)
-        if rec["predicted"] == ABSTAINED:
-            rec["final_decision"], rec["final"] = "abstain", "abstained"
-        elif p < gate.threshold:
+        if rec["predicted"] == ABSTAINED or p < gate.threshold:
             rec["final_decision"], rec["final"] = "abstain", "abstained"
         else:
             rec["final_decision"] = "answer"
@@ -159,15 +168,25 @@ def run(pipeline: Pipeline, items: list[dict], n_folds: int = 5) -> dict:
         sum(1 for r in answered if r["predicted"] == r["gold"]) / len(answered) if answered else 0.0
     )
     selective_accuracy = (
-        sum(1 for r in answered if r["predicted"] == r["gold"]) / len(answerable) if answerable else 0.0
+        sum(1 for r in answered if r["predicted"] == r["gold"]) / len(answerable)
+        if answerable
+        else 0.0
     )
     recall = sum(1 for r in answerable if r["recall_hit"]) / len(answerable) if answerable else 0.0
-    recall_ro = (sum(1 for r in answerable if r["recall_hit_retrieval_only"]) / len(answerable)
-                 if answerable else 0.0)
-    unnecessary = sum(1 for r in answerable if r["final_decision"] != "answer") / len(answerable) if answerable else 0.0
+    recall_ro = (
+        sum(1 for r in answerable if r["recall_hit_retrieval_only"]) / len(answerable)
+        if answerable
+        else 0.0
+    )
+    unnecessary = (
+        sum(1 for r in answerable if r["final_decision"] != "answer") / len(answerable)
+        if answerable
+        else 0.0
+    )
     abstention_on_unanswerable = (
         sum(1 for r in unanswerable if r["final_decision"] == "abstain") / len(unanswerable)
-        if unanswerable else 0.0
+        if unanswerable
+        else 0.0
     )
     probs = [r["probability"] for r in records]
     correct = [r["correct"] for r in records]
@@ -187,12 +206,14 @@ def run(pipeline: Pipeline, items: list[dict], n_folds: int = 5) -> dict:
         base = r["item_id"].replace("HI", "")
         pairs[base][r["lang"]] = r["final"]
     en, hi = [], []
-    for base, langs in pairs.items():
+    for langs in pairs.values():
         if "en" in langs and "hi" in langs:
             en.append(langs["en"])
             hi.append(langs["hi"])
     clvc = _kappa(en, hi) if en else float("nan")
-    clvc_raw = (sum(1 for a, b in zip(en, hi) if a == b) / len(en)) if en else float("nan")
+    clvc_raw = (
+        (sum(1 for a, b in zip(en, hi, strict=False) if a == b) / len(en)) if en else float("nan")
+    )
 
     # The honest denominators: every item counts, including the unanswerable ones.
     answered_all = [r for r in records if r["final_decision"] == "answer"]
@@ -201,7 +222,9 @@ def run(pipeline: Pipeline, items: list[dict], n_folds: int = 5) -> dict:
         "n_items": len(records),
         "accuracy_all_items": round(correct_all / len(records), 3) if records else 0.0,
         "coverage_all_items": round(len(answered_all) / len(records), 3) if records else 0.0,
-        "selective_accuracy_all_items": round(correct_all / len(answered_all), 3) if answered_all else 0.0,
+        "selective_accuracy_all_items": round(correct_all / len(answered_all), 3)
+        if answered_all
+        else 0.0,
         "n_answerable": len(answerable),
         "coverage": round(coverage, 3),
         "verdict_accuracy": round(verdict_accuracy, 3),
@@ -213,7 +236,9 @@ def run(pipeline: Pipeline, items: list[dict], n_folds: int = 5) -> dict:
         "ece": round(_ece(probs, correct), 3),
         "excess_aurc": round(max(0.0, _aurc(probs, correct) - _oracle_aurc(correct)), 3),
         "clvc_kappa": None if isinstance(clvc, float) and math.isnan(clvc) else round(clvc, 3),
-        "clvc_raw_agreement": None if isinstance(clvc_raw, float) and math.isnan(clvc_raw) else round(clvc_raw, 3),
+        "clvc_raw_agreement": None
+        if isinstance(clvc_raw, float) and math.isnan(clvc_raw)
+        else round(clvc_raw, 3),
         "clvc_pairs": len(en),
         "gate_threshold": round(gate.threshold, 3),
         "p95_latency_ms": round(p95, 1),
@@ -259,10 +284,16 @@ def format_table(result: dict) -> str:
         if value is None:
             lines.append(f"{name:26s}{'n/a':>10s}{target:>10.2f}   no pairs")
             continue
-        ok = (value >= target) if name in {"recall_at_5", "verdict_accuracy", "selective_accuracy", "clvc_kappa"} else (value <= target)
+        ok = (
+            (value >= target)
+            if name in {"recall_at_5", "verdict_accuracy", "selective_accuracy", "clvc_kappa"}
+            else (value <= target)
+        )
         lines.append(f"{name:26s}{value:>10.2f}{target:>10.2f}   {'meets' if ok else 'MISSES'}")
     lines.append("")
-    lines.append(f"coverage {m['coverage']:.2f}   n={m['n_items']} ({m['n_answerable']} answerable)   "
-                 f"gate threshold {m['gate_threshold']:.2f}")
+    lines.append(
+        f"coverage {m['coverage']:.2f}   n={m['n_items']} ({m['n_answerable']} answerable)   "
+        f"gate threshold {m['gate_threshold']:.2f}"
+    )
     lines.append(f"abstention on unanswerable items: {m['abstention_on_unanswerable']:.2f}")
     return "\n".join(lines)

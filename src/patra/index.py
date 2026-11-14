@@ -5,12 +5,14 @@ with no model download. It is a lexical-vector fallback, not a neural embedding
 model. `VectorIndex` exposes the same interface a BGE-M3 index would, so swapping
 in a real embedder is a one-class change (see docs/SUBMISSION.md).
 """
+
 from __future__ import annotations
 
 import math
 import re
 from collections import Counter
-from typing import Iterable, Protocol
+from collections.abc import Iterable
+from typing import Protocol
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -55,8 +57,10 @@ class BM25Index:
                     continue
                 idf = self.idf.get(t, 0.0)
                 freq = tf[t]
-                s += idf * (freq * (self.k1 + 1)) / (
-                    freq + self.k1 * (1 - self.b + self.b * dl / (self.avg_len or 1))
+                s += (
+                    idf
+                    * (freq * (self.k1 + 1))
+                    / (freq + self.k1 * (1 - self.b + self.b * dl / (self.avg_len or 1)))
                 )
             if s > 0:
                 scores.append((self.chunk_ids[i], s))

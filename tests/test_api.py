@@ -18,10 +18,18 @@ def test_schemes_list():
 
 
 def test_query_returns_verdict_and_citations():
-    r = client.post("/query", json={
-        "question": "I am a 45 year old farmer who does not pay income tax. Am I eligible for PM-KISAN?",
-        "profile": {"occupation": "farmer", "age": 45, "income_tax_payer": "no", "govt_employee": "no"},
-    })
+    r = client.post(
+        "/query",
+        json={
+            "question": "I am a 45 year old farmer who does not pay income tax. Am I eligible for PM-KISAN?",
+            "profile": {
+                "occupation": "farmer",
+                "age": 45,
+                "income_tax_payer": "no",
+                "govt_employee": "no",
+            },
+        },
+    )
     assert r.status_code == 200
     body = r.json()
     assert body["verdict_type"] == "eligible"

@@ -1,5 +1,4 @@
 """Corpus integrity: every criterion must quote its document exactly."""
-from pathlib import Path
 
 from patra.corpus import load_corpus
 from patra.settings import CORPUS_DIR, CRITERIA_DIR
@@ -16,7 +15,7 @@ def test_every_clause_span_resolves_to_its_own_text():
     for scheme in corpus.schemes.values():
         for c in scheme.criteria:
             text = corpus.documents[c.doc_id].text
-            assert text[c.span_start:c.span_end] == c.clause_text
+            assert text[c.span_start : c.span_end] == c.clause_text
 
 
 def test_span_is_not_in_a_different_document():
@@ -33,4 +32,4 @@ def test_corpus_version_is_stable():
 def test_chunks_have_offsets():
     for chunk in corpus.chunks[:20]:
         doc = corpus.documents[chunk.doc_id]
-        assert doc.text[chunk.span_start:chunk.span_end].strip() == chunk.text
+        assert doc.text[chunk.span_start : chunk.span_end].strip() == chunk.text
