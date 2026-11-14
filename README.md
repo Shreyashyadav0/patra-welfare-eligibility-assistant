@@ -7,7 +7,7 @@ criteria that decided it and quotes the clause behind each one.
 The verdict is computed by a deterministic rule engine over a curated criteria table.
 A language model may read the question; it never states a threshold and never decides.
 
-> **Project:** IGNOU MCA (MCA_NEW), course MCSP-232, 12 credits.
+
 > **Category:** Artificial Intelligence / Machine Learning / Data Science.
 
 ---
