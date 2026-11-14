@@ -222,7 +222,7 @@ Python 3.12 · FastAPI · Jinja2 · scikit-learn (TF-IDF, logistic regression, G
 
 ## Author
 
-**Shreyash Yadav** — IGNOU MCA (MCA_NEW), MCSP-232 project.
+**Shreyash Yadav** —
 
 Licensed under the MIT License; see `LICENSE`. The scheme documents in `data/corpus/`
 remain the property of their publishers and are included as illustrative extracts.
