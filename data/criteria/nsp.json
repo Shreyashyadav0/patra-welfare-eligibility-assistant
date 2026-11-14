@@ -1,0 +1,44 @@
+{
+  "scheme_id": "nsp",
+  "name": "National Scholarship Portal: merit-cum-means scholarship",
+  "ministry": "Ministry of Education",
+  "level": "central",
+  "state": null,
+  "official_url": "https://scholarships.gov.in/",
+  "source_note": "ILLUSTRATIVE SEED DATA. Criteria are simplified for the prototype and are not a substitute for the official scheme guidelines; replace before any real use.",
+  "doc_id": "nsp-2026",
+  "criteria": [
+    {
+      "field": "is_student",
+      "criterion_type": "occupation",
+      "operator": "IS_TRUE",
+      "threshold": null,
+      "mandatory": true,
+      "clause_text": "The applicant must be a student enrolled in a recognised institution."
+    },
+    {
+      "field": "income_annual",
+      "criterion_type": "income",
+      "operator": "<=",
+      "threshold": 250000,
+      "mandatory": true,
+      "clause_text": "Annual family income must not exceed Rs 2,50,000."
+    },
+    {
+      "field": "marks",
+      "criterion_type": "other",
+      "operator": ">=",
+      "threshold": 50,
+      "mandatory": true,
+      "clause_text": "The applicant must have secured at least 50 percent marks in the previous examination."
+    },
+    {
+      "field": "age",
+      "criterion_type": "age",
+      "operator": "<=",
+      "threshold": 30,
+      "mandatory": true,
+      "clause_text": "The applicant must be 30 years of age or younger."
+    }
+  ]
+}
